@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BohemianHacks - Garden</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f8e6;
+            color: #333;
+            text-align: center;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            background: #dcedc8;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+        
+        .garden {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .plot {
+            background-color: #8d6e63;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .plot:hover {
+            transform: scale(1.05);
+        }
+        
+        .locked {
+            background-color: #616161;
+            cursor: not-allowed;
+        }
+        
+        .planted {
+            background-color: #795548;
+        }
+        
+        .ready {
+            background-color: #4caf50;
+        }
+        
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background-color: #4caf50;
+            transition: width 0.3s;
+            border-radius: 0 0 0 8px;
+        }
+        
+        .shop {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2e7d32;
+        }
+        
+        button:disabled {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
+        }
+        
+        .seed-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        
+        .seed-buttons button {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .upgrade-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .messages {
+            margin: 20px 0;
+            min-height: 24px;
+            color: #e65100;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .garden {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .upgrade-buttons, .seed-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Garden</h1>
+        <div class="messages" id="message"></div>
+        <div class="stats">
+            <div>💰 <span id="money">100</span></div>
+            <div>🌱 <span id="seeds">0</span></div>
+            <div>⏱️ Day <span id="day">1</span></div>
+        </div>
+        
+        <div class="garden" id="garden"></div>
+        
+        <div class="shop">
+            <h2>Seeds</h2>
+            <div class="seed-buttons">
+                <button id="buy-carrot">Buy 🥕 Carrot ($5)</button>
+                <button id="buy-tomato">Buy 🍅 Tomato ($10)</button>
+                <button id="buy-corn">Buy 🌽 Corn ($15)</button>
+            </div>
+            
+            <h2>Upgrades</h2>
+            <div class="upgrade-buttons">
+                <button id="buy-plot">New Plot ($25)</button>
+                <button id="buy-speed">Growth Speed ($30)</button>
+                <button id="buy-harvest">Auto Harvest ($50)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const game = {
+            money: 100,
+            seeds: {
+                carrot: 0,
+                tomato: 0,
+                corn: 0
+            },
+            day: 1,
+            growthSpeed: 1,
+            autoHarvest: false,
+            plots: [],
+            unlockedPlots: 1,
+            maxPlots: 12,
+            seedInfo: {
+                carrot: { emoji: "🥕", growTime: 5, price: 5, sellPrice: 8 },
+                tomato: { emoji: "🍅", growTime: 8, price: 10, sellPrice: 16 },
+                corn: { emoji: "🌽", growTime: 12, price: 15, sellPrice: 25 }
+            },
+            speedLevel: 1,
+            speedCost: 30,
+            speedMultiplier: 1.2,
+            plotCost: 25,
+            harvestCost: 50
+        };
+
+        // Initialize plots
+        function initPlots() {
+            for (let i = 0; i < game.maxPlots; i++) {
+                game.plots.push({
+                    unlocked: i < game.unlockedPlots,
+                    plant: null,
+                    growth: 0,
+                    ready: false
+                });
+            }
+        }
+
+        // Render the garden
+        function renderGarden() {
+            const gardenElement = document.getElementById("garden");
+            gardenElement.innerHTML = "";
+            
+            for (let i = 0; i < game.plots.length; i++) {
+                const plot = game.plots[i];
+                const plotElement = document.createElement("div");
+                
+                if (!plot.unlocked) {
+                    plotElement.className = "plot locked";
+                    plotElement.innerHTML = "🔒";
+                } else if (plot.plant === null) {
+                    plotElement.className = "plot";
+                    plotElement.innerHTML = "🌱";
+                    plotElement.onclick = () => plantSeed(i);
+                } else if (plot.ready) {
+                    plotElement.className = "plot ready";
+                    plotElement.innerHTML = game.seedInfo[plot.plant].emoji;
+                    plotElement.onclick = () => harvestPlot(i);
+                } else {
+                    plotElement.className = "plot planted";
+                    plotElement.innerHTML = game.seedInfo[plot.plant].emoji;
+                    
+                    // Add progress bar
+                    const growthPercent = (plot.growth / game.seedInfo[plot.plant].growTime) * 100;
+                    const progressBar = document.createElement("div");
+                    progressBar.className = "progress-bar";
+                    progressBar.style.width = `${growthPercent}%`;
+                    plotElement.appendChild(progressBar);
+                }
+                
+                gardenElement.appendChild(plotElement);
+            }
+        }
+
+        // Update stats display
+        function updateStats() {
+            document.getElementById("money").textContent = game.money;
+            document.getElementById("seeds").textContent = game.seeds.carrot + game.seeds.tomato + game.seeds.corn;
+            document.getElementById("day").textContent = game.day;
+            
+            // Update button states
+            document.getElementById("buy-carrot").disabled = game.money < game.seedInfo.carrot.price;
+            document.getElementById("buy-tomato").disabled = game.money < game.seedInfo.tomato.price;
+            document.getElementById("buy-corn").disabled = game.money < game.seedInfo.corn.price;
+            document.getElementById("buy-plot").disabled = game.money < game.plotCost || game.unlockedPlots >= game.maxPlots;
+            document.getElementById("buy-speed").disabled = game.money < game.speedCost;
+            document.getElementById("buy-harvest").disabled = game.money < game.harvestCost || game.autoHarvest;
+            
+            if (game.unlockedPlots >= game.maxPlots) {
+                document.getElementById("buy-plot").textContent = "Max Plots";
+            }
+            
+            if (game.autoHarvest) {
+                document.getElementById("buy-harvest").textContent = "Auto Harvest (Owned)";
+            }
+        }
+
+        // Show a message
+        function showMessage(text) {
+            const messageElement = document.getElementById("message");
+            messageElement.textContent = text;
+            setTimeout(() => {
+                messageElement.textContent = "";
+            }, 3000);
+        }
+
+        // Buy a seed
+        function buySeed(type) {
+            if (game.money >= game.seedInfo[type].price) {
+                game.money -= game.seedInfo[type].price;
+                game.seeds[type]++;
+                updateStats();
+                showMessage(`Bought ${game.seedInfo[type].emoji} ${type} seed!`);
+            } else {
+                showMessage("Not enough money!");
+            }
+        }
+
+        // Plant a seed
+        function plantSeed(plotIndex) {
+            const totalSeeds = game.seeds.carrot + game.seeds.tomato + game.seeds.corn;
+            
+            if (totalSeeds === 0) {
+                showMessage("You don't have any seeds!");
+                return;
+            }
+            
+            // For simplicity, plant the first available seed type
+            let seedType = null;
+            if (game.seeds.carrot > 0) seedType = "carrot";
+            else if (game.seeds.tomato > 0) seedType = "tomato";
+            else if (game.seeds.corn > 0) seedType = "corn";
+            
+            game.seeds[seedType]--;
+            game.plots[plotIndex].plant = seedType;
+            game.plots[plotIndex].growth = 0;
+            game.plots[plotIndex].ready = false;
+            
+            renderGarden();
+            updateStats();
+            showMessage(`Planted ${game.seedInfo[seedType].emoji} ${seedType}!`);
+        }
+
+        // Harvest a plot
+        function harvestPlot(plotIndex) {
+            const plot = game.plots[plotIndex];
+            if (!plot.ready) return;
+            
+            const plantType = plot.plant;
+            game.money += game.seedInfo[plantType].sellPrice;
+            
+            plot.plant = null;
+            plot.growth = 0;
+            plot.ready = false;
+            
+            renderGarden();
+            updateStats();
+            showMessage(`Harvested ${game.seedInfo[plantType].emoji} ${plantType} for $${game.seedInfo[plantType].sellPrice}!`);
+        }
+
+        // Buy a plot
+        function buyPlot() {
+            if (game.money >= game.plotCost && game.unlockedPlots < game.maxPlots) {
+                game.money -= game.plotCost;
+                game.plots[game.unlockedPlots].unlocked = true;
+                game.unlockedPlots++;
+                game.plotCost = Math.floor(game.plotCost * 1.5);
+                document.getElementById("buy-plot").textContent = `New Plot ($${game.plotCost})`;
+                renderGarden();
+                updateStats();
+                showMessage("Unlocked a new plot!");
+            } else if (game.unlockedPlots >= game.maxPlots) {
+                showMessage("Maximum plots reached!");
+            } else {
+                showMessage("Not enough money!");
+            }
+        }
+
+        // Buy growth speed upgrade
+        function buySpeed() {
+            if (game.money >= game.speedCost) {
+                game.money -= game.speedCost;
+                game.speedLevel++;
+                game.growthSpeed *= game.speedMultiplier;
+                game.speedCost = Math.floor(game.speedCost * 1.8);
+                document.getElementById("buy-speed").textContent = `Growth Speed ($${game.speedCost})`;
+                updateStats();
+                showMessage(`Growth speed increased to ${game.growthSpeed.toFixed(1)}x!`);
+            } else {
+                showMessage("Not enough money!");
+            }
+        }
+
+        // Buy auto harvest upgrade
+        function buyAutoHarvest() {
+            if (game.money >= game.harvestCost && !game.autoHarvest) {
+                game.money -= game.harvestCost;
+                game.autoHarvest = true;
+                updateStats();
+                showMessage("Auto harvest enabled!");
+            } else if (game.autoHarvest) {
+                showMessage("Already owned!");
+            } else {
+                showMessage("Not enough money!");
+            }
+        }
+
+        // Game loop - runs every second
+        function gameLoop() {
+            // Grow plants
+            for (let i = 0; i < game.plots.length; i++) {
+                const plot = game.plots[i];
+                if (plot.unlocked && plot.plant && !plot.ready) {
+                    plot.growth += game.growthSpeed;
+                    
+                    if (plot.growth >= game.seedInfo[plot.plant].growTime) {
+                        plot.ready = true;
+                        
+                        // Auto harvest if enabled
+                        if (game.autoHarvest) {
+                            setTimeout(() => harvestPlot(i), 500); // Short delay for visual feedback
+                        }
+                    }
+                }
+            }
+            
+            renderGarden();
+            
+            // Advance day every 10 seconds
+            if (game.day % 10 === 0) {
+                game.day++;
+                updateStats();
+            }
+        }
+
+        // Initialize the game
+        function initGame() {
+            initPlots();
+            renderGarden();
+            updateStats();
+            
+            // Add event listeners
+            document.getElementById("buy-carrot").addEventListener("click", () => buySeed("carrot"));
+            document.getElementById("buy-tomato").addEventListener("click", () => buySeed("tomato"));
+            document.getElementById("buy-corn").addEventListener("click", () => buySeed("corn"));
+            document.getElementById("buy-plot").addEventListener("click", buyPlot);
+            document.getElementById("buy-speed").addEventListener("click", buySpeed);
+            document.getElementById("buy-harvest").addEventListener("click", buyAutoHarvest);
+            
+            // Start game loop
+            setInterval(gameLoop, 1000);
+        }
+
+        // Start the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
