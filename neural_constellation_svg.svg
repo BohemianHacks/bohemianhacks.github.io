@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background with subtle gradient -->
+  <defs>
+    <radialGradient id="bg-gradient" cx="50%" cy="50%" r="70%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#121730" />
+      <stop offset="100%" stop-color="#080c1d" />
+    </radialGradient>
+    
+    <!-- Glow filters -->
+    <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <filter id="glow-purple" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <filter id="connection-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <!-- Particle animation -->
+    <radialGradient id="particle-gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bg-gradient)" />
+  
+  <!-- Subtle grid pattern -->
+  <g opacity="0.15">
+    <path d="M0,50 L800,50" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,100 L800,100" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,150 L800,150" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,200 L800,200" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,250 L800,250" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,300 L800,300" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,350 L800,350" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,400 L800,400" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,450 L800,450" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,500 L800,500" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M0,550 L800,550" stroke="#8a9cdb" stroke-width="0.5" />
+    
+    <path d="M50,0 L50,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M100,0 L100,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M150,0 L150,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M200,0 L200,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M250,0 L250,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M300,0 L300,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M350,0 L350,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M400,0 L400,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M450,0 L450,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M500,0 L500,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M550,0 L550,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M600,0 L600,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M650,0 L650,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M700,0 L700,600" stroke="#8a9cdb" stroke-width="0.5" />
+    <path d="M750,0 L750,600" stroke="#8a9cdb" stroke-width="0.5" />
+  </g>
+  
+  <!-- Connections between nodes -->
+  <g filter="url(#connection-glow)">
+    <!-- Main concept web connections -->
+    <path d="M400,300 C350,220 280,190 200,180" stroke="#6366f1" stroke-width="1" fill="none" opacity="0.6">
+      <animate attributeName="opacity" values="0.4;0.8;0.4" dur="8s" repeatCount="indefinite" />
+    </path>
+    <path d="M400,300 C380,230 320,150 260,120" stroke="#6366f1" stroke-width="1" fill="none" opacity="0.5">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="7s" repeatCount="indefinite" />
+    </path>
+    <path d="M400,300 C440,220 490,180 560,150" stroke="#6366f1" stroke-width="1" fill="none" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.9;0.5" dur="9s" repeatCount="indefinite" />
+    </path>
+    <path d="M400,300 C480,280 550,270 630,280" stroke="#6366f1" stroke-width="1" fill="none" opacity="0.5">
+      <animate attributeName="opacity" values="0.4;0.7;0.4" dur="6s" repeatCount="indefinite" />
+    </path>
+    <path d="M400,300 C460,350 510,400 540,460" stroke="#6366f1" stroke-width="1" fill="none" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.8;0.5" dur="8s" repeatCount="indefinite" />
+    </path>
+    <path d="M400,300 C370,360 350,430 320,490" stroke="#6366f1" stroke-width="1" fill="none" opacity="0.5">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="7s" repeatCount="indefinite" />
+    </path>
+    <path d="M400,300 C330,330 250,350 180,340" stroke="#6366f1" stroke-width="1" fill="none" opacity="0.6">
+      <animate attributeName="opacity" values="0.4;0.7;0.4" dur="9s" repeatCount="indefinite" />
+    </path>
+    
+    <!-- Secondary connections -->
+    <path d="M200,180 C230,140 310,120 260,120" stroke="#6366f1" stroke-width="0.7" fill="none" opacity="0.4">
+      <animate attributeName="opacity" values="0.2;0.5;0.2" dur="10s" repeatCount="indefinite" />
+    </path>
+    <path d="M260,120 C350,130 450,140 560,150" stroke="#6366f1" stroke-width="0.7" fill="none" opacity="0.3">
+      <animate attributeName="opacity" values="0.2;0.4;0.2" dur="12s" repeatCount="indefinite" />
+    </path>
+    <path d="M560,150 C580,200 620,240 630,280" stroke="#6366f1" stroke-width="0.7" fill="none" opacity="0.4">
+      <animate attributeName="opacity" values="0.3;0.5;0.3" dur="9s" repeatCount="indefinite" />
+    </path>
+    <path d="M630,280 C600,340 580,400 540,460" stroke="#6366f1" stroke-width="0.7" fill="none" opacity="0.3">
+      <animate attributeName="opacity" values="0.2;0.4;0.2" dur="11s" repeatCount="indefinite" />
+    </path>
+    <path d="M540,460 C470,480 390,500 320,490" stroke="#6366f1" stroke-width="0.7" fill="none" opacity="0.4">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="8s" repeatCount="indefinite" />
+    </path>
+    <path d="M320,490 C260,450 200,400 180,340" stroke="#6366f1" stroke-width="0.7" fill="none" opacity="0.3">
+      <animate attributeName="opacity" values="0.2;0.5;0.2" dur="10s" repeatCount="indefinite" />
+    </path>
+    <path d="M180,340 C170,280 180,220 200,180" stroke="#6366f1" stroke-width="0.7" fill="none" opacity="0.4">
+      <animate attributeName="opacity" values="0.3;0.5;0.3" dur="9s" repeatCount="indefinite" />
+    </path>
+  </g>
+  
+  <!-- Nodes representing concepts -->
+  <g filter="url(#glow-blue)">
+    <!-- Central node (representing the current focus/thought) -->
+    <circle cx="400" cy="300" r="18" fill="#4f46e5" opacity="0.9">
+      <animate attributeName="r" values="18;20;18" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="400" cy="300" r="25" fill="none" stroke="#4f46e5" stroke-width="2" opacity="0.4">
+      <animate attributeName="r" values="25;30;25" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.4;0.6;0.4" dur="4s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Peripheral concept nodes -->
+    <circle cx="200" cy="180" r="10" fill="#818cf8" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;0.9;0.7" dur="5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="260" cy="120" r="8" fill="#818cf8" opacity="0.7">
+      <animate attributeName="opacity" values="0.6;0.8;0.6" dur="6s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="560" cy="150" r="12" fill="#818cf8" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;0.9;0.7" dur="7s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="630" cy="280" r="9" fill="#818cf8" opacity="0.7">
+      <animate attributeName="opacity" values="0.6;0.8;0.6" dur="8s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="540" cy="460" r="11" fill="#818cf8" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;0.9;0.7" dur="6s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="320" cy="490" r="9" fill="#818cf8" opacity="0.7">
+      <animate attributeName="opacity" values="0.6;0.8;0.6" dur="7s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="180" cy="340" r="10" fill="#818cf8" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;0.9;0.7" dur="5s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Small supporting nodes -->
+    <circle cx="350" cy="150" r="4" fill="#a5b4fc" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.7;0.5" dur="9s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="480" cy="220" r="5" fill="#a5b4fc" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.7;0.5" dur="8s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="290" cy="400" r="4" fill="#a5b4fc" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.7;0.5" dur="7s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="550" cy="350" r="5" fill="#a5b4fc" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.7;0.5" dur="8s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="420" cy="440" r="4" fill="#a5b4fc" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.7;0.5" dur="9s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="230" cy="260" r="5" fill="#a5b4fc" opacity="0.6">
+      <animate attributeName="opacity" values="0.5;0.7;0.5" dur="8s" repeatCount="indefinite" />
+    </circle>
+  </g>
+  
+  <!-- Moving particles along connections -->
+  <g filter="url(#glow-purple)">
+    <!-- Particle 1 -->
+    <circle r="3" fill="#c4b5fd" opacity="0.8">
+      <animateMotion path="M400,300 C350,220 280,190 200,180" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="r" values="3;4;3" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="4s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Particle 2 -->
+    <circle r="3" fill="#c4b5fd" opacity="0.8">
+      <animateMotion path="M400,300 C440,220 490,180 560,150" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="r" values="3;4;3" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="5s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Particle 3 -->
+    <circle r="3" fill="#c4b5fd" opacity="0.8">
+      <animateMotion path="M400,300 C480,280 550,270 630,280" dur="4.5s" repeatCount="indefinite" />
+      <animate attributeName="r" values="3;4;3" dur="4.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="4.5s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Particle 4 -->
+    <circle r="3" fill="#c4b5fd" opacity="0.8">
+      <animateMotion path="M400,300 C460,350 510,400 540,460" dur="5.5s" repeatCount="indefinite" />
+      <animate attributeName="r" values="3;4;3" dur="5.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="5.5s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Particle 5 -->
+    <circle r="3" fill="#c4b5fd" opacity="0.8">
+      <animateMotion path="M400,300 C370,360 350,430 320,490" dur="6s" repeatCount="indefinite" />
+      <animate attributeName="r" values="3;4;3" dur="6s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="6s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Particle 6 -->
+    <circle r="3" fill="#c4b5fd" opacity="0.8">
+      <animateMotion path="M400,300 C330,330 250,350 180,340" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="r" values="3;4;3" dur="5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="5s" repeatCount="indefinite" />
+    </circle>
+  </g>
+  
+  <!-- Subtle nebula-like gradient areas -->
+  <g opacity="0.15">
+    <ellipse cx="350" cy="250" rx="100" ry="70" fill="#4338ca" opacity="0.2">
+      <animate attributeName="opacity" values="0.1;0.3;0.1" dur="12s" repeatCount="indefinite" />
+    </ellipse>
+    <ellipse cx="450" cy="350" rx="120" ry="80" fill="#6d28d9" opacity="0.15">
+      <animate attributeName="opacity" values="0.1;0.2;0.1" dur="15s" repeatCount="indefinite" />
+    </ellipse>
+    <ellipse cx="300" cy="400" rx="90" ry="60" fill="#4338ca" opacity="0.1">
+      <animate attributeName="opacity" values="0.05;0.15;0.05" dur="18s" repeatCount="indefinite" />
+    </ellipse>
+  </g>
+  
+  <!-- Title -->
+  <text x="400" y="60" font-family="Arial, sans-serif" font-size="24" fill="#e0e7ff" text-anchor="middle" filter="url(#glow-blue)">Neural Constellation</text>
+  <text x="400" y="90" font-family="Arial, sans-serif" font-size="16" fill="#c7d2fe" text-anchor="middle" opacity="0.8">A Visual Metaphor for AI Cognition</text>
+  
+  <!-- Legend -->
+  <g transform="translate(50, 530)">
+    <circle cx="10" cy="0" r="6" fill="#4f46e5" />
+    <text x="25" y="5" font-family="Arial, sans-serif" font-size="12" fill="#c7d2fe">Active Focus</text>
+    
+    <circle cx="110" cy="0" r="6" fill="#818cf8" />
+    <text x="125" y="5" font-family="Arial, sans-serif" font-size="12" fill="#c7d2fe">Related Concepts</text>
+    
+    <circle cx="230" cy="0" r="3" fill="#c4b5fd" />
+    <text x="245" y="5" font-family="Arial, sans-serif" font-size="12" fill="#c7d2fe">Information Flow</text>
+  </g>
+</svg>
