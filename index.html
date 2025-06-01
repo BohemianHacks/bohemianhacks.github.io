@@ -140,6 +140,47 @@
             font-weight: bold;
         }
         
+        .game-hash {
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            user-select: text;
+            display: grid;
+            grid-template-columns: repeat(32, 1ch);
+            grid-template-rows: repeat(16, 1em);
+            gap: 0;
+            line-height: 1.2;
+            justify-content: center;
+        }
+        
+        .game-hash span {
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .game-hash .padding {
+            color: #999;
+        }
+        
+        .game-hash:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
         @media (max-width: 600px) {
             .garden {
                 grid-template-columns: repeat(3, 1fr);
@@ -148,6 +189,11 @@
             .upgrade-buttons, .seed-buttons {
                 flex-direction: column;
                 align-items: center;
+            }
+            
+            .game-hash {
+                grid-template-columns: repeat(16, 1ch);
+                grid-template-rows: repeat(32, 1em);
             }
         }
     </style>
@@ -163,6 +209,8 @@
         </div>
         
         <div class="garden" id="garden"></div>
+        
+        <div class="game-hash" id="game-hash" data-tooltip="Left-click to copy, right-click to paste game state"></div>
         
         <div class="shop">
             <h2>Seeds</h2>
@@ -181,6 +229,7 @@
         </div>
     </div>
 
+    <script src="plant-genetics.js"></script>
     <script>
         // Game state
         const game = {
@@ -208,6 +257,149 @@
             harvestCost: 50
         };
 
+        // Generate a hash of the game state
+        function generateGameHash() {
+            const state = {
+                m: game.money,
+                s: game.seeds,
+                d: game.day,
+                gs: game.growthSpeed,
+                ah: game.autoHarvest,
+                up: game.unlockedPlots,
+                pc: game.plotCost,
+                sc: game.speedCost,
+                hc: game.harvestCost,
+                p: game.plots.map(plot => ({
+                    u: plot.unlocked,
+                    p: plot.plant ? {
+                        t: plot.plant,
+                        g: plot.growth,
+                        r: plot.ready,
+                        gs: plot.plantInstance ? plot.plantInstance.toGeneSequence() : null
+                    } : null
+                }))
+            };
+            try {
+                return btoa(JSON.stringify(state));
+            } catch (e) {
+                console.error("Error generating game hash:", e);
+                return "ERROR";
+            }
+        }
+
+        // Load game state from hash
+        function loadGameFromHash(hash) {
+            try {
+                const state = JSON.parse(atob(hash));
+                // Validate and load core game state
+                game.money = typeof state.m === 'number' && state.m >= 0 ? state.m : 100;
+                game.seeds = state.s && typeof state.s === 'object' ? {
+                    carrot: Math.max(0, Math.floor(state.s.carrot || 0)),
+                    tomato: Math.max(0, Math.floor(state.s.tomato || 0)),
+                    corn: Math.max(0, Math.floor(state.s.corn || 0))
+                } : { carrot: 0, tomato: 0, corn: 0 };
+                game.day = typeof state.d === 'number' && state.d >= 1 ? Math.floor(state.d) : 1;
+                game.growthSpeed = typeof state.gs === 'number' && state.gs >= 1 ? state.gs : 1;
+                game.autoHarvest = state.ah === true;
+                game.unlockedPlots = typeof state.up === 'number' && state.up >= 1 && state.up <= game.maxPlots ? Math.floor(state.up) : 1;
+                game.plotCost = typeof state.pc === 'number' && state.pc >= 25 ? Math.floor(state.pc) : 25;
+                game.speedCost = typeof state.sc === 'number' && state.sc >= 30 ? Math.floor(state.sc) : 30;
+                game.harvestCost = typeof state.hc === 'number' && state.hc >= 50 ? Math.floor(state.hc) : 50;
+                // Reinitialize plots
+                game.plots = [];
+                initPlots();
+                // Load plot data
+                if (Array.isArray(state.p)) {
+                    state.p.forEach((plotState, i) => {
+                        if (i < game.maxPlots && plotState) {
+                            game.plots[i].unlocked = plotState.u === true;
+                            if (plotState.p && plotState.p.t in game.seedInfo) {
+                                game.plots[i].plant = plotState.p.t;
+                                game.plots[i].growth = typeof plotState.p.g === 'number' ? Math.max(0, plotState.p.g) : 0;
+                                game.plots[i].ready = plotState.p.r === true;
+                                if (plotState.p.gs && plotState.p.t) {
+                                    game.plots[i].plantInstance = createStarterPlant(plotState.p.t);
+                                    try {
+                                        game.plots[i].plantInstance.fromGeneSequence(plotState.p.gs);
+                                    } catch (e) {
+                                        console.error("Error loading plant instance for plot", i, e);
+                                        game.plots[i].plantInstance = null;
+                                        game.plots[i].plant = null;
+                                        game.plots[i].growth = 0;
+                                        game.plots[i].ready = false;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                // Ensure unlockedPlots matches actual unlocked plots
+                const actualUnlocked = game.plots.filter(p => p.unlocked).length;
+                if (actualUnlocked > game.unlockedPlots) {
+                    game.unlockedPlots = actualUnlocked;
+                }
+                renderGarden();
+                updateStats();
+                updateHashDisplay();
+                showMessage("Game state loaded from clipboard!");
+            } catch (e) {
+                console.error("Error loading game hash:", e);
+                showMessage("Invalid game state hash!");
+                updateHashDisplay(); // Revert to current game state hash
+            }
+        }
+
+        // Update hash display as a fixed-size grid
+        function updateHashDisplay() {
+            const hashElement = document.getElementById("game-hash");
+            const hashText = generateGameHash();
+            const maxLength = 512; // 16x32 grid
+            const paddedHash = hashText.padEnd(maxLength, "0");
+            hashElement.innerHTML = "";
+            for (let i = 0; i < paddedHash.length; i++) {
+                const charSpan = document.createElement("span");
+                charSpan.textContent = paddedHash[i];
+                if (i >= hashText.length) {
+                    charSpan.className = "padding";
+                }
+                hashElement.appendChild(charSpan);
+            }
+            hashElement.setAttribute("data-tooltip", "Left-click to copy, right-click to paste game state");
+        }
+
+        // Copy hash to clipboard and update tooltip
+        function copyHashToClipboard() {
+            const hashText = generateGameHash();
+            navigator.clipboard.writeText(hashText).then(() => {
+                const hashElement = document.getElementById("game-hash");
+                hashElement.setAttribute("data-tooltip", "Game state copied!");
+                showMessage("Game state copied to clipboard!");
+                setTimeout(() => {
+                    hashElement.setAttribute("data-tooltip", "Left-click to copy, right-click to paste game state");
+                }, 3000);
+            }).catch(err => {
+                console.error("Failed to copy hash:", err);
+                showMessage("Failed to copy game state!");
+            });
+        }
+
+        // Paste hash from clipboard
+        function pasteHashFromClipboard(event) {
+            event.preventDefault();
+            navigator.clipboard.readText().then(text => {
+                const hashElement = document.getElementById("game-hash");
+                loadGameFromHash(text);
+                hashElement.setAttribute("data-tooltip", "Game state pasted!");
+                setTimeout(() => {
+                    hashElement.setAttribute("data-tooltip", "Left-click to copy, right-click to paste game state");
+                }, 3000);
+            }).catch(err => {
+                console.error("Failed to paste hash:", err);
+                showMessage("Failed to paste game state!");
+                updateHashDisplay();
+            });
+        }
+
         // Initialize plots
         function initPlots() {
             for (let i = 0; i < game.maxPlots; i++) {
@@ -215,7 +407,8 @@
                     unlocked: i < game.unlockedPlots,
                     plant: null,
                     growth: 0,
-                    ready: false
+                    ready: false,
+                    plantInstance: null
                 });
             }
         }
@@ -224,11 +417,9 @@
         function renderGarden() {
             const gardenElement = document.getElementById("garden");
             gardenElement.innerHTML = "";
-            
             for (let i = 0; i < game.plots.length; i++) {
                 const plot = game.plots[i];
                 const plotElement = document.createElement("div");
-                
                 if (!plot.unlocked) {
                     plotElement.className = "plot locked";
                     plotElement.innerHTML = "🔒";
@@ -238,20 +429,23 @@
                     plotElement.onclick = () => plantSeed(i);
                 } else if (plot.ready) {
                     plotElement.className = "plot ready";
-                    plotElement.innerHTML = game.seedInfo[plot.plant].emoji;
+                    plotElement.innerHTML = plot.plantInstance ? 
+                        plot.plantInstance.getEmoji() : 
+                        game.seedInfo[plot.plant].emoji;
                     plotElement.onclick = () => harvestPlot(i);
                 } else {
                     plotElement.className = "plot planted";
-                    plotElement.innerHTML = game.seedInfo[plot.plant].emoji;
-                    
-                    // Add progress bar
-                    const growthPercent = (plot.growth / game.seedInfo[plot.plant].growTime) * 100;
+                    plotElement.innerHTML = plot.plantInstance ? 
+                        plot.plantInstance.getEmoji() : 
+                        game.seedInfo[plot.plant].emoji;
+                    const growthPercent = plot.plantInstance ? 
+                        plot.plantInstance.progress : 
+                        (plot.growth / game.seedInfo[plot.plant].growTime) * 100;
                     const progressBar = document.createElement("div");
                     progressBar.className = "progress-bar";
                     progressBar.style.width = `${growthPercent}%`;
                     plotElement.appendChild(progressBar);
                 }
-                
                 gardenElement.appendChild(plotElement);
             }
         }
@@ -261,19 +455,17 @@
             document.getElementById("money").textContent = game.money;
             document.getElementById("seeds").textContent = game.seeds.carrot + game.seeds.tomato + game.seeds.corn;
             document.getElementById("day").textContent = game.day;
-            
-            // Update button states
             document.getElementById("buy-carrot").disabled = game.money < game.seedInfo.carrot.price;
             document.getElementById("buy-tomato").disabled = game.money < game.seedInfo.tomato.price;
             document.getElementById("buy-corn").disabled = game.money < game.seedInfo.corn.price;
             document.getElementById("buy-plot").disabled = game.money < game.plotCost || game.unlockedPlots >= game.maxPlots;
             document.getElementById("buy-speed").disabled = game.money < game.speedCost;
             document.getElementById("buy-harvest").disabled = game.money < game.harvestCost || game.autoHarvest;
-            
             if (game.unlockedPlots >= game.maxPlots) {
                 document.getElementById("buy-plot").textContent = "Max Plots";
+            } else {
+                document.getElementById("buy-plot").textContent = `New Plot ($${game.plotCost})`;
             }
-            
             if (game.autoHarvest) {
                 document.getElementById("buy-harvest").textContent = "Auto Harvest (Owned)";
             }
@@ -303,43 +495,49 @@
         // Plant a seed
         function plantSeed(plotIndex) {
             const totalSeeds = game.seeds.carrot + game.seeds.tomato + game.seeds.corn;
-            
             if (totalSeeds === 0) {
                 showMessage("You don't have any seeds!");
                 return;
             }
-            
-            // For simplicity, plant the first available seed type
             let seedType = null;
             if (game.seeds.carrot > 0) seedType = "carrot";
             else if (game.seeds.tomato > 0) seedType = "tomato";
             else if (game.seeds.corn > 0) seedType = "corn";
-            
             game.seeds[seedType]--;
             game.plots[plotIndex].plant = seedType;
             game.plots[plotIndex].growth = 0;
             game.plots[plotIndex].ready = false;
-            
+            game.plots[plotIndex].plantInstance = createStarterPlant(seedType);
             renderGarden();
             updateStats();
-            showMessage(`Planted ${game.seedInfo[seedType].emoji} ${seedType}!`);
+            showMessage(`Planted ${game.plots[plotIndex].plantInstance.getEmoji()} ${seedType}!`);
         }
 
         // Harvest a plot
         function harvestPlot(plotIndex) {
             const plot = game.plots[plotIndex];
             if (!plot.ready) return;
-            
             const plantType = plot.plant;
-            game.money += game.seedInfo[plantType].sellPrice;
-            
+            if (plot.plantInstance) {
+                const result = plot.plantInstance.harvest();
+                if (result.success) {
+                    game.money += result.rewards.coins;
+                    game.seeds[plantType] += result.rewards.seeds;
+                    showMessage(result.message);
+                } else {
+                    showMessage(result.message);
+                    return;
+                }
+            } else {
+                game.money += game.seedInfo[plantType].sellPrice;
+                showMessage(`Harvested ${game.seedInfo[plantType].emoji} ${plantType} for $${game.seedInfo[plantType].sellPrice}!`);
+            }
             plot.plant = null;
             plot.growth = 0;
             plot.ready = false;
-            
+            plot.plantInstance = null;
             renderGarden();
             updateStats();
-            showMessage(`Harvested ${game.seedInfo[plantType].emoji} ${plantType} for $${game.seedInfo[plantType].sellPrice}!`);
         }
 
         // Buy a plot
@@ -391,26 +589,36 @@
 
         // Game loop - runs every second
         function gameLoop() {
-            // Grow plants
             for (let i = 0; i < game.plots.length; i++) {
                 const plot = game.plots[i];
                 if (plot.unlocked && plot.plant && !plot.ready) {
-                    plot.growth += game.growthSpeed;
-                    
-                    if (plot.growth >= game.seedInfo[plot.plant].growTime) {
-                        plot.ready = true;
-                        
-                        // Auto harvest if enabled
-                        if (game.autoHarvest) {
-                            setTimeout(() => harvestPlot(i), 500); // Short delay for visual feedback
+                    if (plot.plantInstance) {
+                        const result = plot.plantInstance.update(100, false, null);
+                        plot.growth = plot.plantInstance.progress;
+                        plot.ready = plot.plantInstance.ready;
+                        if (result.event === "died") {
+                            showMessage(`${plot.plantInstance.getEmoji()} ${plot.plant} died!`);
+                            plot.plant = null;
+                            plot.growth = 0;
+                            plot.ready = false;
+                            plot.plantInstance = null;
+                        } else if (result.event === "matured" && game.autoHarvest) {
+                            setTimeout(() => harvestPlot(i), 500);
+                        }
+                    } else {
+                        plot.growth += game.growthSpeed;
+                        if (plot.growth >= game.seedInfo[plot.plant].growTime) {
+                            plot.ready = true;
+                            if (game.autoHarvest) {
+                                setTimeout(() => harvestPlot(i), 500);
+                            }
                         }
                     }
                 }
             }
-            
             renderGarden();
-            
-            // Advance day every 10 seconds
+            updateStats();
+            updateHashDisplay();
             if (game.day % 10 === 0) {
                 game.day++;
                 updateStats();
@@ -422,20 +630,18 @@
             initPlots();
             renderGarden();
             updateStats();
-            
-            // Add event listeners
+            updateHashDisplay();
             document.getElementById("buy-carrot").addEventListener("click", () => buySeed("carrot"));
             document.getElementById("buy-tomato").addEventListener("click", () => buySeed("tomato"));
             document.getElementById("buy-corn").addEventListener("click", () => buySeed("corn"));
             document.getElementById("buy-plot").addEventListener("click", buyPlot);
             document.getElementById("buy-speed").addEventListener("click", buySpeed);
             document.getElementById("buy-harvest").addEventListener("click", buyAutoHarvest);
-            
-            // Start game loop
+            document.getElementById("game-hash").addEventListener("click", copyHashToClipboard);
+            document.getElementById("game-hash").addEventListener("contextmenu", pasteHashFromClipboard);
             setInterval(gameLoop, 1000);
         }
 
-        // Start the game when page loads
         window.onload = initGame;
     </script>
 </body>
